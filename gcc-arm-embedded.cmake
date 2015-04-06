@@ -62,20 +62,18 @@ set(TOOLCHAIN_COMMON_FLAGS "-ffunction-sections -fdata-sections")
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m4")
   set(TOOLCHAIN_COMMON_FLAGS
     "${TOOLCHAIN_COMMON_FLAGS}"
-    "-mcpu=cortex-m4 -march=armv7e-m -mthumb"
+    "-mcpu=cortex-m4 -mthumb"
     "-mfloat-abi=hard -mfpu=fpv4-sp-d16"
   )
 elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
   set(TOOLCHAIN_COMMON_FLAGS
     "${TOOLCHAIN_COMMON_FLAGS}"
-    "-mcpu=cortex-m3 -march=armv7-m -mthumb"
-    "-msoft-float"
+    "-mcpu=cortex-m3 -mthumb"
   )
 elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m0")
   set(TOOLCHAIN_COMMON_FLAGS
     "${TOOLCHAIN_COMMON_FLAGS}"
-    "-mcpu=cortex-m0 -march=armv7-m -mthumb"
-    "-msoft-float"
+    "-mcpu=cortex-m0 -mthumb "
   )
 else()
   message(WARNING
