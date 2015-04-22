@@ -1,18 +1,17 @@
-#
-# This is a toolchain file meant for use with CMake cross-compilation for Cortex M architectures.
-#
-# USAGE
-# Invoke cmake like (example provided for .bat script):
-#    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug^
-#    -DCMAKE_TOOLCHAIN_FILE=%EST_ROOT%\cmake-toolchains\gcc-arm-embedded.cmake^
-#    -DGCC_VERSION=gcc-arm-none-eabi-4.9-2014q4
-#    -DCMAKE_SYSTEM_PROCESSOR=cortex-m4
-#
-# Supported processors: cortex-m0, cortex-m3, cortex-m4
+# This is a toolchain file meant for CMake cross-compilation for Cortex M architectures.
 #
 # REQUIREMENTS
 # Environment variable EST_ROOT must be defined, pointing to directory containing installed gcc 
 # compilers.
+#
+# USAGE
+# Invoke cmake like (example provided for .bat script):
+#    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug^
+#    -DCMAKE_TOOLCHAIN_FILE=%EST_ROOT%\cmake-toolchains\gcc-arm-embedded-toolchain.cmake^
+#    -DGCC_VERSION=gcc-arm-none-eabi-4.9-2014q4^
+#    -DCMAKE_SYSTEM_PROCESSOR=cortex-m0
+#
+# Supported processors: cortex-m0, cortex-m3
 #
 
 file(TO_CMAKE_PATH "$ENV{EST_ROOT}" EST_ROOT)
@@ -40,7 +39,7 @@ endif()
 if(NOT DEFINED CMAKE_SYSTEM_PROCESSOR)
     message(SEND_ERROR "CMAKE_SYSTEM_PROCESSOR not defined")
 else()
-    message(STATUS "Compiling for ${CMAKE_SYSTEM_PROCESSOR}")
+    message(STATUS "Generating buildsystem for ${CMAKE_SYSTEM_PROCESOR}")
 endif()
 
 file(TO_CMAKE_PATH "${EST_ROOT}/${GCC_VERSION}" EST_ROOT)
@@ -75,23 +74,18 @@ set(CMAKE_FIND_ROOT_PATH  "${EST_ROOT}/${GCC_VERSION}/bin/")
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 
 # Create mandatory flags for processor, toolchain etc.
 set(TOOLCHAIN_COMMON_FLAGS "-ffunction-sections -fdata-sections")
-
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m4")
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
   set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16"
-  )
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
-  set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m3 -mthumb"
+    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m3 -mthumb -mabi=aapcs -mfloat-abi=soft"
   )
 elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m0")
   set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m0 -mthumb"
+    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m0 -mthumb -mabi=aapcs -mfloat-abi=soft"
   )
 else()
   message(WARNING
@@ -100,5 +94,6 @@ else()
   )
 endif()
 
-set(CMAKE_C_FLAGS "${TOOLCHAIN_COMMON_FLAGS}")
-set(CMAKE_CXX_FLAGS "${TOOLCHAIN_COMMON_FLAGS}")
+set(CMAKE_C_FLAGS "${TOOLCHAIN_COMMON_FLAGS}" CACHE INTERNAL "" FORCE)
+set(CMAKE_CXX_FLAGS "${TOOLCHAIN_COMMON_FLAGS}" CACHE INTERNAL "" FORCE)
+set(CMAKE_EXE_LINKER_FLAGS  "-Wl,--gc-sections --specs=nano.specs" CACHE INTERNAL "" FORCE)
