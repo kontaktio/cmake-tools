@@ -49,15 +49,20 @@ set(GCC_PREFIX "$ENV{EST_ROOT}/${GCC_VERSION}/bin/arm-none-eabi-")
 get_filename_component(GCC_PREFIX
   "${GCC_PREFIX}" REALPATH
 )
-
+# Create system-dependant extension
+if(WIN32)
+    set(EXE ".exe")
+else()
+    set(EXE "")
+endif()
 # Create CMAKE_AR variable as CMAKE doesn't do this properly
-set(CMAKE_AR ${GCC_PREFIX}ar.exe CACHE FILEPATH "Archiver")
+set(CMAKE_AR ${GCC_PREFIX}ar${EXE} CACHE FILEPATH "Archiver")
 
 # Create variables pointing to toolchain tools
-set(GCC_SIZE ${GCC_PREFIX}size.exe CACHE FILEPATH "Size printer")
-set(GCC_OBJCOPY ${GCC_PREFIX}objcopy.exe CACHE FILEPATH "Object copy tool")
-set(GCC_OBJDUMP ${GCC_PREFIX}objdump.exe CACHE FILEPATH "Object dump tool")
-set(GCC_NM ${GCC_PREFIX}nm.exe CACHE FILEPATH "NM tool")
+set(GCC_SIZE ${GCC_PREFIX}size${EXE} CACHE FILEPATH "Size printer")
+set(GCC_OBJCOPY ${GCC_PREFIX}objcopy${EXE} CACHE FILEPATH "Object copy tool")
+set(GCC_OBJDUMP ${GCC_PREFIX}objdump${EXE} CACHE FILEPATH "Object dump tool")
+set(GCC_NM ${GCC_PREFIX}nm${EXE} CACHE FILEPATH "NM tool")
 
 message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
 message(STATUS "Target processor: ${CMAKE_SYSTEM_PROCESSOR}")
@@ -67,8 +72,8 @@ include(CMakeForceCompiler)
 
 set(CMAKE_SYSTEM_NAME Generic) # Targeting an embedded system, no OS.
 
-CMAKE_FORCE_C_COMPILER(${GCC_PREFIX}gcc.exe GNU)
-CMAKE_FORCE_CXX_COMPILER(${GCC_PREFIX}g++.exe GNU)
+CMAKE_FORCE_C_COMPILER(${GCC_PREFIX}gcc${EXE} GNU)
+CMAKE_FORCE_CXX_COMPILER(${GCC_PREFIX}g++${EXE} GNU)
 
 set(CMAKE_FIND_ROOT_PATH  "${EST_ROOT}/${GCC_VERSION}/bin/")
 
