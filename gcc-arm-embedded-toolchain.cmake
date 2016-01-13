@@ -11,7 +11,8 @@
 #    -DGCC_VERSION=gcc-arm-none-eabi-4.9-2014q4^
 #    -DCMAKE_SYSTEM_PROCESSOR=cortex-m0
 #
-# Supported processors: cortex-m0, cortex-m3
+# Supported processors: cortex-m0, cortex-m3, cortex-m4,
+#                       multiple(ie. processor specific flags has to be choosen in targets)
 #
 
 file(TO_CMAKE_PATH "$ENV{EST_ROOT}" EST_ROOT)
@@ -84,14 +85,27 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # Create mandatory flags for processor, toolchain etc.
 set(TOOLCHAIN_COMMON_FLAGS "-ffunction-sections -fdata-sections")
+
+set(CORTEX_M0_FLAGS -mcpu=cortex-m0 -mthumb -mabi=aapcs -mfloat-abi=soft)
+set(CORTEX_M3_FLAGS -mcpu=cortex-m3 -mthumb -mabi=aapcs -mfloat-abi=soft)
+set(CORTEX_M4_FLAGS -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-strict-aliasing -fno-builtin --short-enums)
+
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
+  string (REPLACE ";" " " FLAGS "${CORTEX_M3_FLAGS}")
   set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m3 -mthumb -mabi=aapcs -mfloat-abi=soft"
+    "${TOOLCHAIN_COMMON_FLAGS} ${FLAGS}"
   )
 elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m0")
+  string (REPLACE ";" " " FLAGS "${CORTEX_M0_FLAGS}")
   set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} -mcpu=cortex-m0 -mthumb -mabi=aapcs -mfloat-abi=soft"
+    "${TOOLCHAIN_COMMON_FLAGS} ${FLAGS}"
   )
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m4")
+  string (REPLACE ";" " " FLAGS "${CORTEX_M4_FLAGS}")
+  set(TOOLCHAIN_COMMON_FLAGS
+    "${TOOLCHAIN_COMMON_FLAGS} $${FLAGS}>"
+  )
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "multiple")
 else()
   message(WARNING
     "Processor not recognised in toolchain file, "
@@ -102,3 +116,4 @@ endif()
 set(CMAKE_C_FLAGS "${TOOLCHAIN_COMMON_FLAGS}" CACHE INTERNAL "" FORCE)
 set(CMAKE_CXX_FLAGS "${TOOLCHAIN_COMMON_FLAGS}" CACHE INTERNAL "" FORCE)
 set(CMAKE_EXE_LINKER_FLAGS  "-Wl,--gc-sections --specs=nano.specs" CACHE INTERNAL "" FORCE)
+
