@@ -11,8 +11,7 @@
 #    -DGCC_VERSION=gcc-arm-none-eabi-4.9-2014q4^
 #    -DCMAKE_SYSTEM_PROCESSOR=cortex-m0
 #
-# Supported processors: cortex-m0, cortex-m3, cortex-m4,
-#                       multiple(ie. processor specific flags has to be choosen in targets)
+# Supported processors: cortex-m0, cortex-m3, cortex-m4
 #
 
 file(TO_CMAKE_PATH "$ENV{EST_ROOT}" EST_ROOT)
@@ -36,11 +35,17 @@ else()
     message(STATUS "Generating buildsystem using ${GCC_VERSION}")
 endif()
 
-# CMAKE_SYSTEM_PROCESSOR should be provided on command line
-if(NOT DEFINED CMAKE_SYSTEM_PROCESSOR)
-    message(SEND_ERROR "CMAKE_SYSTEM_PROCESSOR not defined")
+# CMTOOLS_SYSTEM_PROCESSOR should be provided on command line
+if(DEFINED CMAKE_SYSTEM_PROCESSOR)
+    message(WARNING "Variable CMAKE_SYSTEM_PROCESSOR is deprecated! Use CMTOOLS_SYSTEM_PROCESSOR instead!")
+    set(CMTOOLS_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
+    unset(CMAKE_SYSTEM_PROCESSOR)
+endif()
+
+if(DEFINED CMTOOLS_SYSTEM_PROCESSOR)
+    message(STATUS "Generating buildsystem for ${CMTOOLS_SYSTEM_PROCESSOR}")
 else()
-    message(STATUS "Generating buildsystem for ${CMAKE_SYSTEM_PROCESOR}")
+    message(STATUS "Generating mutlitarget buildsystem")
 endif()
 
 file(TO_CMAKE_PATH "${EST_ROOT}/${GCC_VERSION}" EST_ROOT)
@@ -66,7 +71,9 @@ set(GCC_OBJDUMP ${GCC_PREFIX}objdump${EXE} CACHE FILEPATH "Object dump tool")
 set(GCC_NM ${GCC_PREFIX}nm${EXE} CACHE FILEPATH "NM tool")
 
 message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
-message(STATUS "Target processor: ${CMAKE_SYSTEM_PROCESSOR}")
+if(DEFINED CMTOOLS_SYSTEM_PROCESSOR)
+  message(STATUS "Target processor: ${CMTOOLS_SYSTEM_PROCESSOR}")
+endif()
 message(STATUS "GCC toolchain prefix: ${GCC_PREFIX}")
 
 include(CMakeForceCompiler)
@@ -88,29 +95,30 @@ set(TOOLCHAIN_COMMON_FLAGS "-ffunction-sections -fdata-sections")
 
 set(CORTEX_M0_FLAGS -mcpu=cortex-m0 -mthumb -mabi=aapcs -mfloat-abi=soft)
 set(CORTEX_M3_FLAGS -mcpu=cortex-m3 -mthumb -mabi=aapcs -mfloat-abi=soft)
-set(CORTEX_M4_FLAGS -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-strict-aliasing -fno-builtin --short-enums)
+set(CORTEX_M4_FLAGS -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16)
 
-if(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
-  string (REPLACE ";" " " FLAGS "${CORTEX_M3_FLAGS}")
-  set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} ${FLAGS}"
-  )
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m0")
-  string (REPLACE ";" " " FLAGS "${CORTEX_M0_FLAGS}")
-  set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} ${FLAGS}"
-  )
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "cortex-m4")
-  string (REPLACE ";" " " FLAGS "${CORTEX_M4_FLAGS}")
-  set(TOOLCHAIN_COMMON_FLAGS
-    "${TOOLCHAIN_COMMON_FLAGS} $${FLAGS}>"
-  )
-elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "multiple")
-else()
-  message(WARNING
-    "Processor not recognised in toolchain file, "
-    "compiler flags not configured."
-  )
+if(DEFINED CMTOOLS_SYSTEM_PROCESSOR)
+  if(CMTOOLS_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
+    string (REPLACE ";" " " FLAGS "${CORTEX_M3_FLAGS}")
+    set(TOOLCHAIN_COMMON_FLAGS
+      "${TOOLCHAIN_COMMON_FLAGS} ${FLAGS}"
+    )
+  elseif(CMTOOLS_SYSTEM_PROCESSOR STREQUAL "cortex-m0")
+    string (REPLACE ";" " " FLAGS "${CORTEX_M0_FLAGS}")
+    set(TOOLCHAIN_COMMON_FLAGS
+      "${TOOLCHAIN_COMMON_FLAGS} ${FLAGS}"
+    )
+  elseif(CMTOOLS_SYSTEM_PROCESSOR STREQUAL "cortex-m4")
+    string (REPLACE ";" " " FLAGS "${CORTEX_M4_FLAGS}")
+    set(TOOLCHAIN_COMMON_FLAGS
+      "${TOOLCHAIN_COMMON_FLAGS} $${FLAGS}>"
+    )
+  else()
+    message(WARNING
+      "Processor not recognised in toolchain file, "
+      "compiler flags not configured."
+    )
+  endif()
 endif()
 
 set(CMAKE_C_FLAGS "${TOOLCHAIN_COMMON_FLAGS}" CACHE INTERNAL "" FORCE)
