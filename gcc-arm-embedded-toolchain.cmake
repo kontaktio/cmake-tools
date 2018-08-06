@@ -46,7 +46,7 @@ if(DEFINED CMAKE_SYSTEM_PROCESSOR)
     unset(CMAKE_SYSTEM_PROCESSOR)
 endif()
 
-if(DEFINED CMTOOLS_SYSTEM_PROCESSOR AND "${CMTOOLS_SYSTEM_PROCESSOR}")
+if(DEFINED CMTOOLS_SYSTEM_PROCESSOR AND CMTOOLS_SYSTEM_PROCESSOR)
     message(STATUS "Generating buildsystem for ${CMTOOLS_SYSTEM_PROCESSOR}")
 else()
     message(STATUS "Generating mutlitarget buildsystem")
@@ -107,7 +107,7 @@ set(CORTEX_M0_FLAGS -mcpu=cortex-m0 -mthumb -mabi=aapcs -mfloat-abi=soft)
 set(CORTEX_M3_FLAGS -mcpu=cortex-m3 -mthumb -mabi=aapcs -mfloat-abi=soft)
 set(CORTEX_M4_FLAGS -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16)
 
-if(DEFINED CMTOOLS_SYSTEM_PROCESSOR AND "${CMTOOLS_SYSTEM_PROCESSOR}")
+if(DEFINED CMTOOLS_SYSTEM_PROCESSOR AND CMTOOLS_SYSTEM_PROCESSOR)
   if(CMTOOLS_SYSTEM_PROCESSOR STREQUAL "cortex-m3")
     string (REPLACE ";" " " FLAGS "${CORTEX_M3_FLAGS}")
     set(TOOLCHAIN_COMMON_FLAGS
@@ -129,6 +129,9 @@ if(DEFINED CMTOOLS_SYSTEM_PROCESSOR AND "${CMTOOLS_SYSTEM_PROCESSOR}")
       "compiler flags not configured."
     )
   endif()
+  message(STATUS "Toolchain flags set to: ${TOOLCHAIN_COMMON_FLAGS} , ${FLAGS}")
+else()
+  message(WARNING "Please set the CMTOOL_SYSTEM_PROCESSOR variable, else the compilation will fail")
 endif()
 
 set(CMAKE_C_FLAGS "${TOOLCHAIN_COMMON_FLAGS}" CACHE INTERNAL "")
